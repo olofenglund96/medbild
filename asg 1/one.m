@@ -72,7 +72,7 @@ p1 = @(x, xi) sum(k1(xi, x))/size(xi,1);
 p2 = @(x, xi) sum(k2(xi, x))/size(xi,1);
 
 %p11 = @(x)
-
+%%
 xp = linspace(-3, 3, 10000);
 
 figure
@@ -80,12 +80,13 @@ plot(xp, p1(xp, XTrain(:,1,1)));
 hold on;
 plot(xp, p1(xp, XTrain(:,1,2)));
 plot(xp, 0.5*p1(xp, XTrain(:,1,1)) + 0.5*p1(xp, XTrain(:,1,2)))
-title(['\sigma = 0.5 s_{parzen} = 0.01'])
+title(['Estimated p(x|y=1), p(x|y=2) and p(x) with \sigma = 0.5 s_{parzen} = 0.01'])
 legend('p(x|y=1)', 'p(x|y=2)', 'p(x)')
+saveas(gcf,'plots/yxs05s001.eps')
 figure
 plot(xp, 0.5*(p1(xp, XTrain(:,1,1)))./(0.5*p1(xp, XTrain(:,1,1)) + 0.5*p1(xp, XTrain(:,1,2))))
-title(['\sigma = 0.5 s_{parzen} = 0.01'])
-legend('p(y=1|x)')
+title(['Estimated p(y=1|x) with \sigma = 0.5 s_{parzen} = 0.01'])
+saveas(gcf,'plots/y1s05s001.eps')
 %%
 xp = linspace(-15, 15, 10000);
 figure
@@ -93,12 +94,13 @@ plot(xp, p1(xp, XTrain(:,1,3)));
 hold on;
 plot(xp, p1(xp, XTrain(:,1,4)));
 plot(xp, 0.5*p1(xp, XTrain(:,1,3)) + 0.5*p1(xp, XTrain(:,1,4)))
-title(['\sigma = 5 s_{parzen} = 0.01'])
+title(['Estimated p(x|y=1), p(x|y=2) and p(x) with \sigma = 5 s_{parzen} = 0.01'])
 legend('p(x|y=1)', 'p(x|y=2)', 'p(x)')
+saveas(gcf,'plots/yxs5s001.eps')
 figure
 plot(xp, 0.5*(p1(xp, XTrain(:,1,3)))./(0.5*p1(xp, XTrain(:,1,3)) + 0.5*p1(xp, XTrain(:,1,4))))
-title(['\sigma = 5 s_{parzen} = 0.01'])
-legend('p(y=1|x)')
+title(['Estimated p(y=1|x) with \sigma = 5 s_{parzen} = 0.01'])
+saveas(gcf,'plots/y1s5s001.eps')
 %%
 xp = linspace(-10, 10, 10000);
 figure
@@ -106,12 +108,13 @@ plot(xp, p2(xp, XTrain(:,1,1)));
 hold on;
 plot(xp, p2(xp, XTrain(:,1,2)));
 plot(xp, 0.5*p2(xp, XTrain(:,1,1)) + 0.5*p2(xp, XTrain(:,1,2)))
-title(['\sigma = 0.5 s_{parzen} = 1'])
+title(['Estimated p(x|y=1), p(x|y=2) and p(x) with \sigma = 0.5 s_{parzen} = 1'])
 legend('p(x|y=1)', 'p(x|y=2)', 'p(x)')
+saveas(gcf,'plots/y1s05s1.eps')
 figure
 plot(xp, 0.5*(p2(xp, XTrain(:,1,1)))./(0.5*p2(xp, XTrain(:,1,1)) + 0.5*p2(xp, XTrain(:,1,2))))
-title(['\sigma = 0.5 s_{parzen} = 1'])
-legend('p(y=1|x)')
+title(['Estimated p(y=1|x) with \sigma = 0.5 s_{parzen} = 1'])
+saveas(gcf,'plots/yxs05s1.eps')
 %%
 xp = linspace(-20, 20, 10000);
 figure
@@ -119,9 +122,76 @@ plot(xp, p2(xp, XTrain(:,1,3)));
 hold on;
 plot(xp, p2(xp, XTrain(:,1,4)));
 plot(xp, 0.5*p2(xp, XTrain(:,1,3)) + 0.5*p2(xp, XTrain(:,1,4)))
-title(['\sigma = 5 s_{parzen} = 1'])
+title(['Estimated p(x|y=1), p(x|y=2) and p(x) with \sigma = 5 s_{parzen} = 1'])
 legend('p(x|y=1)', 'p(x|y=2)', 'p(x)')
+saveas(gcf,'plots/y1s5s1.eps')
 figure
 plot(xp, 0.5*(p2(xp, XTrain(:,1,3)))./(0.5*p2(xp, XTrain(:,1,3)) + 0.5*p2(xp, XTrain(:,1,4))))
-title(['\sigma = 5 s_{parzen} = 1'])
-legend('p(y=1|x)')
+title(['Estimated p(y=1|x) with \sigma = 5 s_{parzen} = 1'])
+saveas(gcf,'plots/yxs5s1.eps')
+%%
+t = 0.5;
+px1 = 0.5*(p1(XTest(:,1,1)', XTrain(:,1,1)))./(0.5*p1(XTest(:,1,1)', XTrain(:,1,1)) + 0.5*p1(XTest(:,1,1)', XTrain(:,1,2))) >= t;
+px2 = 0.5*(p1(XTest(:,1,2)', XTrain(:,1,1)))./(0.5*p1(XTest(:,1,2)', XTrain(:,1,1)) + 0.5*p1(XTest(:,1,2)', XTrain(:,1,2))) < t;
+
+correct = length(find(px1 == 1)) + length(find(px2 == 1));
+perf = correct/(length(px1) + length(px2))
+err = 1-perf
+%%
+px1 = 0.5*(p2(XTest(:,1,1)', XTrain(:,1,1)))./(0.5*p2(XTest(:,1,1)', XTrain(:,1,1)) + 0.5*p2(XTest(:,1,1)', XTrain(:,1,2))) >= t;
+px2 = 0.5*(p2(XTest(:,1,2)', XTrain(:,1,1)))./(0.5*p2(XTest(:,1,2)', XTrain(:,1,1)) + 0.5*p2(XTest(:,1,2)', XTrain(:,1,2))) < t;
+
+correct = length(find(px1 == 1)) + length(find(px2 == 1));
+perf = correct/(length(px1) + length(px2))
+err = 1-perf
+
+%%
+px1 = 0.5*(p1(XTest(:,1,3)', XTrain(:,1,3)))./(0.5*p1(XTest(:,1,3)', XTrain(:,1,3)) + 0.5*p1(XTest(:,1,3)', XTrain(:,1,4))) >= t;
+px2 = 0.5*(p1(XTest(:,1,4)', XTrain(:,1,3)))./(0.5*p1(XTest(:,1,4)', XTrain(:,1,3)) + 0.5*p1(XTest(:,1,4)', XTrain(:,1,4))) < t;
+
+correct = length(find(px1 == 1)) + length(find(px2 == 1));
+perf = correct/(length(px1) + length(px2))
+err = 1-perf
+%%
+px1 = 0.5*(p2(XTest(:,1,3)', XTrain(:,1,3)))./(0.5*p2(XTest(:,1,3)', XTrain(:,1,3)) + 0.5*p2(XTest(:,1,3)', XTrain(:,1,4))) >= t;
+px2 = 0.5*(p2(XTest(:,1,4)', XTrain(:,1,3)))./(0.5*p2(XTest(:,1,4)', XTrain(:,1,3)) + 0.5*p2(XTest(:,1,4)', XTrain(:,1,4))) < t;
+
+correct = length(find(px1 == 1)) + length(find(px2 == 1));
+perf = correct/(length(px1) + length(px2))
+err = 1-perf
+%% true models
+t = 0.5;
+px1 = 0.5*(y11(XTest(:,1,1))./(0.5*y11(XTest(:,1,1)) + 0.5*y12(XTest(:,1,1)))) >= t;
+px2 = 0.5*(y11(XTest(:,1,2))./(0.5*y11(XTest(:,1,2)) + 0.5*y12(XTest(:,1,2)))) < t;
+
+correct = length(find(px1 == 1)) + length(find(px2 == 1));
+perf = correct/(length(px1) + length(px2))
+err = 1-perf
+%%
+px1 = 0.5*(y21(XTest(:,1,3))./(0.5*y21(XTest(:,1,3)) + 0.5*y22(XTest(:,1,3)))) >= t;
+px2 = 0.5*(y21(XTest(:,1,4))./(0.5*y21(XTest(:,1,4)) + 0.5*y22(XTest(:,1,4)))) < t;
+
+correct = length(find(px1 == 1)) + length(find(px2 == 1));
+perf = correct/(length(px1) + length(px2))
+err = 1-perf
+
+%% cross-validation
+ni = 1;
+K = 100;
+data = XTest(:,1,1);
+datlen = length(data)
+
+k = @(x, xi, width) 1/(2*pi*width^2)^(1/2)*exp(-1/(2*width^2)*abs(x-xi).^2);
+p = @(x, xi, width) sum(k(xi, x, width))/size(xi,1);
+
+for r = 0.5:0.1:2
+    for i = 1:K
+        % remove 1 data point
+        remove_idx = randi(datlen,1);
+        X = data;
+        X(remove_idx) = [];
+        xi = data(remove_idx);
+        est_p = p(
+        
+    end
+end
