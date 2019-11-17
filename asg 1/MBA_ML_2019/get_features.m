@@ -15,12 +15,14 @@ STR{3} = 'image patches';
 
 imb = img > F(1);
 bwa = bwarea(imb);
-area_means = mean(bwa);
+area_means = bwa/patches;
 F(4) = area_means;
 STR{4} = 'mean area of patches';
 
-F(5) = std(bwa);
-STR{5} = 'std of area patches';
+imb = img > F(1);
+total_area = bwarea(imb);
+F(5) = total_area;
+STR{5} = 'total area of patches';
 
 imb = img > F(1);
 stats = regionprops(imb, 'Eccentricity');

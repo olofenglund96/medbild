@@ -23,11 +23,23 @@ end
 
 %% Visualize the data
 figure(1);
-gscatter(X1f(:,3), X1f(:,5), Y1 ,'rgbrgb','ooo+++');
-xlabel(str{3});
-ylabel(str{5});
+gscatter(X1f(:,1), X1f(:,2), Y1 ,'rgbrgb','ooo+++');
+xlabel(str{1});
+ylabel(str{2});
+title('Feature space using 2 features');
+%%
+for i = 1:5
+    for j = i+1:6
+        figure(1);
+        gscatter(X1f(:,i), X1f(:,j), Y1 ,'rgbrgb','ooo+++');
+        xlabel(str{i});
+        ylabel(str{j});
+        title('Feature space using 2 features');
+        saveas(gcf,['../plots/feat_' num2str(i) '_' num2str(j)], 'epsc')
+    end
+end
+%%
 figure(2)
-
 colors = ['r','b','g','y', 'm', 'k'];
 
 for i = 1:size(X1f, 1)
@@ -40,10 +52,14 @@ ylabel(str{3});
 zlabel(str{5});
 
 %% Visualize cell images
-indices = randi(size(X1,4), 4)
-%indices = [426 427; 338 339]
+final_indices = zeros(6);
+for i = 1:6
+    class_i = find(Y1 == num2str(i))
+    indices = randi(length(class_i), 6, 1)
+    final_indices(:,i) = class_i(indices);
+end
 hold off;
-montage(X1(:,:,1, indices), 'DisplayRange', [0 100])
+montage(X1(:,:,1, final_indices), 'DisplayRange', [0 100])
 
 
 %% Visualize features on images

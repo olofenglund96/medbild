@@ -50,15 +50,15 @@ XTest(:,:,4) = XTest22;
 %%
 %scatter(XTest(:,1,1), XTest(:,2,1))
 
-for i = 1:2
+for i = 3:4
     scatter(XTrain(:,1,i), XTrain(:,2,i))
     hold on
-    if i == 1
-        x = linspace(-2, 2, 1000);
-        plot(x, y11(x));
-    elseif i == 2
-        x = linspace(-1, 3, 1000);
-        plot(x, y12(x));
+    if i == 3
+        x = linspace(-20, 20, 1000);
+        plot(x, y21(x));
+    elseif i == 4
+        x = linspace(-20, 20, 1000);
+        plot(x, y22(x));
     end
 end
 
@@ -86,6 +86,7 @@ saveas(gcf,'plots/yxs05s001', 'epsc')
 figure
 plot(xp, 0.5*(p1(xp, XTrain(:,1,1)))./(0.5*p1(xp, XTrain(:,1,1)) + 0.5*p1(xp, XTrain(:,1,2))))
 title(['Estimated p(y=1|x) with \sigma = 0.5 s_{parzen} = 0.01'])
+ylim([0 1.3])
 saveas(gcf,'plots/y1s05s001', 'epsc')
 %%
 xp = linspace(-15, 15, 10000);
@@ -100,6 +101,7 @@ saveas(gcf,'plots/yxs5s001', 'epsc')
 figure
 plot(xp, 0.5*(p1(xp, XTrain(:,1,3)))./(0.5*p1(xp, XTrain(:,1,3)) + 0.5*p1(xp, XTrain(:,1,4))))
 title(['Estimated p(y=1|x) with \sigma = 5 s_{parzen} = 0.01'])
+ylim([0 1.3])
 saveas(gcf,'plots/y1s5s001', 'epsc')
 %%
 xp = linspace(-10, 10, 10000);
@@ -114,6 +116,7 @@ saveas(gcf,'plots/yxs05s1', 'epsc')
 figure
 plot(xp, 0.5*(p2(xp, XTrain(:,1,1)))./(0.5*p2(xp, XTrain(:,1,1)) + 0.5*p2(xp, XTrain(:,1,2))))
 title(['Estimated p(y=1|x) with \sigma = 0.5 s_{parzen} = 1'])
+ylim([0 1.3])
 saveas(gcf,'plots/y1s05s1', 'epsc')
 %%
 xp = linspace(-20, 20, 10000);
@@ -128,6 +131,7 @@ saveas(gcf,'plots/y1s5s1', 'epsc')
 figure
 plot(xp, 0.5*(p2(xp, XTrain(:,1,3)))./(0.5*p2(xp, XTrain(:,1,3)) + 0.5*p2(xp, XTrain(:,1,4))))
 title(['Estimated p(y=1|x) with \sigma = 5 s_{parzen} = 1'])
+ylim([0 1.3])
 saveas(gcf,'plots/yxs5s1', 'epsc')
 %%
 t = 0.5;
@@ -177,7 +181,7 @@ err = 1-perf
 
 %% cross-validation
 ni = 1;
-data = XTrain(:,1,1);
+data = XTrain(:,1,4);
 datlen = length(data);
 n = datlen;
 k = @(x, xi, width) 1/(2*pi*width^2)^(1/2)*exp(-1/(2*width^2)*abs(x-xi).^2);
@@ -202,3 +206,5 @@ for r = 0.1:0.001:2
         max_r = r;
     end
 end
+
+max_r

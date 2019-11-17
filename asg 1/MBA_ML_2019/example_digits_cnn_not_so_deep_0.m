@@ -4,13 +4,15 @@
 %% 2. Select deep learning architecture
 layers = [
     imageInputLayer([28 28 1]) % Specify input sizes
-    fullyConnectedLayer(10)    % Fully connected is a affine map from 28^2 pixels to 10 numbers
+    convolution2dLayer(3,16,'Padding',1)
+    reluLayer
+    fullyConnectedLayer(10)
     softmaxLayer               % Convert to 'probabilities'
     classificationLayer];      % Specify output layer
 %% 3. Train deep learning network
 miniBatchSize = 512;       
 max_epochs = 30;           % Specify how long we should optimize
-learning_rate = 1;     % Try different learning rates 
+learning_rate = 0.3;     % Try different learning rates 
 options = trainingOptions( 'sgdm',...
     'MaxEpochs',max_epochs,...
     'InitialLearnRate',learning_rate, ...
