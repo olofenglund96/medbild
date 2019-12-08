@@ -120,14 +120,17 @@ imagesc(imfuse(im1, im3, 'blend'));
 l1 = [real(models(:,1)) imag(models(:,1))]';
 l2 = [real(models(:,pat_nbr)) imag(models(:,pat_nbr))]';
 
-l2p = s*R*l2 + t;
+[R,t,s] = alignKidney(models(:,1), models(:,pat_nbr));
+
+% l2p = s*R*l2 + t;
 
 % plot(l1(1,:), l1(2,:));
 % hold on;
 % plot(l2p(1,:), l2p(2,:));
 
 l1c = l1(1,:) + sqrt(-1)*l1(2,:);
-l2c = l2p(1,:) + sqrt(-1)*l2p(2,:);
+% l2c = l2p(1,:) + sqrt(-1)*l2p(2,:);
+l2c = transformPoints(models(:,pat_nbr), R, t, s)
 
 figure
 imagesc(dmsa_images(:,:,1))
@@ -144,12 +147,17 @@ colormap(gray)
 axis xy
 hold on
 drawshape_comp(l1c,[1 14 1],'.-r')
-drawshape_comp(l2c,[1 14 1],'.-g')
+drawshape_comp(l2c',[1 14 1],'.-g')
 axis equal
-
 
 %%
 shape = models(:,1);
+[R,t,s] = alignKidney(shape, models(:,2));
+
+transformPoints(models(:,2), R, t, s)
+
+%%
+first_shape = models(:,1);
 figure
 imagesc(dmsa_images(:,:,1))
 colormap(gray)
@@ -157,8 +165,9 @@ axis xy
 hold on
 drawshape_comp(models(:,1),[1 14 1],'.-r')
 means = zeros(14, 40);
-
-for j = 1:10
+shape = first_shape;
+conv_iters = 0;
+for j = 1:100
     means(:,1) = shape;
     for i = 2:size(models, 2)
         [R,t,s] = alignKidney(shape, models(:,i));
@@ -168,13 +177,22 @@ for j = 1:10
     
     meanshape = mean(means, 2);
     
-    if any(imag(meanshape) < 0)
-        meanshape
+    [R,t,s] = alignKidney(first_shape, meanshape);
+    
+    new_shape = transformPoints(meanshape, R, t, s);
+    
+    err = norm(new_shape-shape)^2;
+    
+    shape = new_shape;
+    
+    if err < 10
+        conv_iters = conv_iters + 1;
+        if conv_iters > 3
+            break
+        end
+    else
+        conv_iters = 0;
     end
-    
-    [R,t,s] = alignKidney(shape, meanshape);
-    
-    shape = transformPoints(meanshape, R, t, s);
 end
 
 %%
@@ -186,18 +204,97 @@ colormap(gray)
 axis xy
 hold on
 
-drawshape_comp(shape,[1 14 1],'.-g')
-
 for i = 1:39
-    [R,t,s] = alignKidney(models(:,1), models(:,i+1));
+    [R,t,s] = alignKidney(shape, models(:,i+1));
 
     points = transformPoints(models(:,i+1), R, t, s);
     drawshape_comp(points,[1 14 1],'.-r')
 end
-
+drawshape_comp(shape,[1 14 1],'.-g')
 axis equal
 
+%%
+meanshape = shape;
 
+aligned_models = zeros(14,40);
 
+for i = 1:40
+   [R,t,s] = alignKidney(models(:,1), models(:,i));
+   aligned_models(:,i) = transformPoints(models(:,i), R, t, s);
+end
 
+diffs = aligned_models-meanshape;
+
+S = zeros(2*14);
+
+diffs = [real(diffs); imag(diffs)]; % (x1 x2... y1 y2)
+
+for i = 1:size(diffs, 1)
+    S = S + diffs(:,i)*diffs(:,i)';
+end
+
+S = S/40;
+
+%% eigens
+[P,D] = eig(S);
+
+lam = flip(diag(D));
+P = flip(P, 2);
+
+Pc = complex(P(1:end/2,:), P(1+end/2:end,:));
+figure
+imagesc(dmsa_images(:,:,1))
+colormap(gray)
+axis xy
+hold on
+drawshape_comp(meanshape,[1 14 1],'.-g')
+
+drawshape_comp(meanshape + Pc(:,1)*2*sqrt(lam(1)), [1 14 1], '.-r')
+
+%%
+E_tot = sum(lam);
+E = 0;
+thresh = 0.95;
+num_eigens = -1;
+for i = 1:length(lam)
+    E = E + lam(i);
+    if E/E_tot >= thresh
+        num_eigens = i;
+        break
+    end
+end
+
+%%
+
+figure
+%imagesc(dmsa_images(:,:,1))
+colormap(gray)
+axis xy
+hold on
+drawshape_comp(meanshape,[1 14 1],'.-g')
+for i = 1:num_eigens
+    drawshape_comp(meanshape + Pc(:,i)*2*sqrt(lam(i)), [1 14 1], '.-r')
+end
+
+%%
+
+for i = 1:3
+    pat_nbr = i
+    figure
+    imagesc(dmsa_images(:,:,i))
+    Xmean = meanshape;
+    colormap(gray)
+    axis xy
+    hold on
+    
+    Ps = complex(P(1:end/2,1:num_eigens),P(1+end/2:end,1:num_eigens));
+    X = models(:,pat_nbr);
+    b = Ps.'*(X-Xmean);
+    Xp = Xmean + Ps*b;
+    [R,t,s] = alignKidney(Xmean, Xp);
+    points = transformPoints(Xp, R, t, s);
+    
+    drawshape_comp(X,[1 14 1],'.-g')
+    drawshape_comp(points, [1 14 1], '.-r')
+end
 
