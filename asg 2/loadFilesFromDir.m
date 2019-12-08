@@ -4,7 +4,7 @@ function [file_cell] = loadFilesFromDir(d, filetype)
     file_cell = cell(length(files),1);
     
     for i = 1:length(files)
-        file_cell{i} = rgb2gray(imread([d files(i).name]));
+        file_cell{i} = imread([d files(i).name]);
     end
 end
 
