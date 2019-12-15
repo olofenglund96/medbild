@@ -1,9 +1,19 @@
 function [R,t,s] = computeTransformations(y,x)
 %COMPUTETRANSFORMATIONS Summary of this function goes here
 %   Detailed explanation goes here
-
-    x = [real(x) imag(x)]';
-    y = [real(y) imag(y)]';
+    
+    if ~isreal(x)
+        x = [real(x) imag(x)]';
+    else
+        x = x';
+    end
+    
+    if ~isreal(y)
+        y = [real(y) imag(y)]';
+    else
+        y = y';
+    end
+    
     
     xb = mean(x,2);
     yb = mean(y,2);

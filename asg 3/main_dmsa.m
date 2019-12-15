@@ -11,8 +11,12 @@ load man_seg
 Xmcoord=real(man_seg);
 Ymcoord=imag(man_seg);
 
+
 % Choose patient and look at image
 pat_nbr = 1;
+
+
+
 
 figure
 imagesc(dmsa_images(:,:,pat_nbr))
@@ -21,6 +25,55 @@ axis xy
 axis equal
 hold on
 drawshape_comp(man_seg,[1 length(man_seg) 1],'.-r')
+
+
+
+tdist = 0;
+
+for i = 1:length(Xmcoord)-1
+    tdist = tdist + pdist([Xmcoord(i) Ymcoord(i); Xmcoord(i+1) Ymcoord(i+1)]);
+end
+
+tdist = tdist + pdist([Xmcoord(end) Ymcoord(end); Xmcoord(1) Ymcoord(1)]);
+
+spacing = tdist/14;
+rem = spacing;
+pi = 2;
+points = [Xmcoord(1) Ymcoord(1)];
+for i = 1:length(Xmcoord)
+   
+    if i ~= length(Xmcoord)
+        p1 = [Xmcoord(i) Ymcoord(i)];
+        p2 = [Xmcoord(i+1) Ymcoord(i+1)];
+    else     
+        p1 = [Xmcoord(i) Ymcoord(i)];
+        p2 = [Xmcoord(1) Ymcoord(1)];
+    end
+    
+    cdist = pdist([p1; p2]);
+    
+    if rem > cdist
+        rem = rem-cdist;
+    else
+        part = rem/cdist;
+%         p = polyfit([p1(1) p2(1)], [p1(2) p2(2)], 1);
+%         
+%         angle = atan(p(1));
+%         
+%         xp = Xmcoord(i) + rem*cos(angle);
+%         yp = polyval(p, xp);
+%         
+        v = (p2-p1)/norm(p2-p1);
+        
+        np = p1 + part*v;
+
+        points = [points; np];
+       
+        rem = spacing - (cdist-rem);
+    end
+end
+
+drawshape_comp(points,[1 14 1],'.-g')
 
 
 %% Code for part 2 of shape model project 
@@ -253,6 +306,9 @@ drawshape_comp(meanshape,[1 14 1],'.-g')
 drawshape_comp(meanshape + Pc(:,1)*2*sqrt(lam(1)), [1 14 1], '.-r')
 
 %%
+plot(lam, 'o')
+
+%%
 E_tot = sum(lam);
 E = 0;
 thresh = 0.95;
@@ -265,13 +321,16 @@ for i = 1:length(lam)
     end
 end
 
+Pb = P(:,1:num_eigens);
+lamb = lam(1:num_eigens);
+
 %%
 
 figure
 
-for j = 8:14
-    subplot(3, 2, j-7)
-    imagesc(dmsa_images(:,:,1))
+for j = 1:6
+    subplot(3, 2, j)
+    %imagesc(dmsa_images(:,:,1))
     colormap(gray)
     axis xy
     hold on
@@ -311,29 +370,130 @@ end
 
 %% segmentation
 
-im = dmsa_images(:,:,1);
+im = dmsa_images(:,:,end);
 imagesc(im)
 colormap(gray)
 
-imt = im > 40;
-
+imt = im > 30;
 bw = bwlabel(imt);
 
 im1 = bw == 2;
 
-props = regionprops(im1, 'Centroid', 'Orientation', 'Area');
+meanim = poly2mask(real(meanshape),imag(meanshape),128,128);
+meanshapexy = [real(meanshape), imag(meanshape)];
 
-ts = props.Centroid;
+props = regionprops(im1, 'Centroid', 'Orientation', 'Area');
+meanprops = regionprops(meanim, 'Orientation', 'Area');
+
 Rs = props.Orientation;
 Ss = props.Area;
 
-fit_lin = fit(real(meanshape),imag(meanshape),'poly1')
-figure
+Rs_mean = meanprops.Orientation;
+Ss_mean = meanprops.Area;
+
+Rsdiff = abs(Rs-Rs_mean);
+Ssdiff = Ss/Ss_mean;
+
+R = [cosd(Rsdiff) -sind(Rsdiff); sind(Rsdiff) cosd(Rsdiff)];
+trans_mean = Ssdiff*R*meanshapexy';
+
+meanprops = regionprops(meanim, 'Centroid');
+ts = props.Centroid;
+ts_mean = mean(trans_mean, 2);
+
+tsdiff = ts'-ts_mean;
+trans_mean = trans_mean + tsdiff;
+
+trans_mean = trans_mean';
+
+bounds = bwboundaries(im1);
+
+points = fliplr(bounds{1});
+
+best_points = [];
+
+for i = 1:size(trans_mean,1)
+    tpoint = trans_mean(i,:);
+    le = 10000000;
+    bp = [];
+    for j = 1:size(points,1)
+        cpoint = points(j,:);
+        err = norm(cpoint-tpoint);
+        
+        if err < le
+            bp = cpoint;
+            le = err;
+        end
+    end
+    
+    best_points = [best_points; bp];
+end
+
+kid_points = best_points;
+imshow(im1)
+hold on;
+drawshape_comp(kid_points, [1 14 1],'.-b')
+drawshape_comp(trans_mean, [1 14 1],'.-r')
+
+%% alignment
+
+bt = Pb'*(kid_points(:) - trans_mean(:));
+
+prot = Pb*bt;
+
+Pb_points = trans_mean + [prot(1:end/2) prot(1+end/2:end)];
+
+[R,t,s] = computeTransformations(kid_points, Pb_points);
+
+Pb_points_t = transformPoints(Pb_points, R, t, s);
+Pbpxy = [real(Pb_points_t) imag(Pb_points_t)];
+
+Pb_x = (R'*(Pbpxy' - tsdiff)/Ssdiff)';
+t = 0.001;
+ms_stacked = meanshapexy(:);
+Pb_stacked = Pb_x(:);
+for i = 1:100
+    dX = ms_stacked - Pb_stacked;
+    db = Pb'*dX(:);
+    newb = bt+db;
+    Pb_stacked = ms_stacked + Pb*(bt+db);
+    
+    if db < t
+        break
+    end
+    bt = newb;
+end
+
+Pb_final = [Pb_stacked(1:end/2) Pb_stacked(1+end/2:end)];
+
+[R,t,s] = computeTransformations(kid_points, Pb_final);
+
+Pb_final_t = transformPoints(Pb_final, R, t, s);
+
+%%
 imagesc(im)
 hold on;
 colormap(gray)
-drawshape_comp(meanshape,[1 14 1],'.-g')
-x = linspace(0, 100);
-plot(fit_lin, real(meanshape), imag(meanshape));
+%drawshape_comp(Pb_x, [1 14 1],'.-b')
+drawshape_comp(Pb_final_t, [1 14 1],'.-g')
+%drawshape_comp(meanshape,[1 14 1],'.-b')
 
+%%
+figure
+%subplot(2, 1, 1)
+imagesc(im1)
 
+drawshape_comp(trans_mean,[1 14 1],'.-g')
+drawshape_comp(kid_points,[1 14 1],'.-r')
+drawshape_comp(Pb_points,[1 14 1],'.-b')
+drawshape_comp(Pb_points_t, [1 14 1],'.-m')
+%plot(points(:,1), points(:,2))
+% for i = 1:size(trans_mean, 1)
+%     line([trans_mean(:,1) best_points(:,1)], [trans_mean(:,2) best_points(:,2)])
+% end
+
+% subplot(2, 1, 2)
+% imagesc(meanim)
+% hold on;
+% colormap(gray)
+% plot(ts_mean(1), ts_mean(2), 'r+');

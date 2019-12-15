@@ -1,6 +1,10 @@
 function [pout] = transformPoints(shape, R, t, s)
 
-l2 = [real(shape) imag(shape)]';
+if isreal(shape)
+    l2 = shape';
+else
+    l2 = [real(shape) imag(shape)]';
+end
 
 l2p = s*R*l2 + t;
 

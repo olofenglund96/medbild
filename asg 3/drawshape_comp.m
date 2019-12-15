@@ -5,6 +5,10 @@ if size(shape, 1) == 1
   shape = shape.';
 end
 
+if isreal(shape)
+    shape = complex(shape(:,1), shape(:,2));
+end
+
 washold = 1;
 if ~ishold
   washold = 0;
