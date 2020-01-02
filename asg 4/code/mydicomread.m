@@ -44,7 +44,7 @@ fclose(fid);
 %%%% Reshape the image. Add code here %%%%
 
 im = reshape(im, [info.Columns, info.Rows]);
-%im = im';
+im = im';
 %%%% Rescale image to true intensities. Add code here %%%%
 m = info.RescaleSlope;
 b = info.RescaleIntercept;

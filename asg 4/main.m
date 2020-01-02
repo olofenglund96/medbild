@@ -32,14 +32,15 @@ imagesc(test_im)
 %%
 [im_3d, info_3d] = mydicomreadfolder;
 
+%%
 im_3d_trans = im_3d;
 im_3d_sag = permute(im_3d, [1 3 2]);
-im_3d_cor = permute(im_3d, [3 1 2]);
+im_3d_cor = permute(im_3d, [2 3 1]);
 %%
 im = im_3d_cor;
 while 1
     for i = 1:size(im, 3)
-        imagesc(im(:,:,i));
+        imagesc(imrotate(im(:,:,i), 90));
         title(['Image ' num2str(i) ' of ' num2str(size(im, 3))])
         colorbar
         colormap('gray')
@@ -47,3 +48,27 @@ while 1
         pause(0.1)
     end
 end
+
+%%
+mid_trans = im_3d_trans(:,:,round(end/2));
+mid_sag = im_3d_sag(:,:,round(end/2));
+mid_cor = im_3d_cor(:,:,round(end/2));
+
+figure
+imagesc(mid_trans);
+title('Transversal view')
+colorbar
+colormap('gray')
+axis equal
+figure
+imagesc(imrotate(mid_sag, -90));
+title('Sagital view')
+colorbar
+colormap('gray')
+axis equal
+figure
+imagesc(imrotate(mid_cor, 90));
+title('Coronal view')
+colorbar
+colormap('gray')
+axis equal

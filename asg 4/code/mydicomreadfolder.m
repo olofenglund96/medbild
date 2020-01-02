@@ -36,7 +36,7 @@ disp(sprintf('Reading the folder %s.',foldername)); %#ok<DSPS>
 f = dir([foldername filesep '*.dcm']);
 image_count = length(f);
 info = mydicominfo([f(1).folder filesep f(1).name]);
-im = zeros(info.Columns, info.Rows, image_count);
+im = zeros(info.Rows, info.Columns, image_count);
 
 for i = 1:image_count
     [~, tim] = mydicomread([f(i).folder filesep f(i).name]);
