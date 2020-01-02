@@ -43,9 +43,9 @@ stack_height = size(im_3d, 3);
 
 image_dims_mm = [col_spacing*cols, row_spacing*rows, slice_thickness*stack_height];
 
-x_mm = [0,image_dims_mm(1)];
-y_mm = [0,image_dims_mm(2)];
-z_mm = [0,image_dims_mm(3)];
+x_mm = 0:image_dims_mm(1);
+y_mm = 0:image_dims_mm(2);
+z_mm = 0:image_dims_mm(3);
 
 %%
 im_3d_trans = im_3d;
@@ -71,35 +71,29 @@ mid_cor = im_3d_cor(:,:,round(end/2));
 
 figure
 imagesc(x_mm, y_mm, mid_trans);
-title('\color{white}Transversal view')
-c = colorbar
-c.Color = [1 1 1];
+title('Transversal view')
+colorbar
 colormap('gray')
 axis image
 set(gca,'xcolor',[1 1 1],'ycolor',[1 1 1]);
-set(gca,'color',[1 1 1]);
+set(gca,'color',[0 0 1],'ycolor',[1 1 1]);
 set(gca,'ticklength',[0.05 0.05]);
-set(gcf,'color',[0 0 0]);
+set(gcf,'color','b');
 figure
-imagesc(x_mm, z_mm, imrotate(mid_sag, -90));
-title('\color{white}Sagital view')
-c = colorbar
-c.Color = [1 1 1];
+imagesc(y_mm, z_mm, imrotate(mid_sag, -90));
+title('Sagital view')
+colorbar
 colormap('gray')
 axis image
 set(gca,'xcolor',[1 1 1],'ycolor',[1 1 1]);
 set(gca,'ticklength',[0.05 0.05]);
-set(gcf,'color',[0 0 0]);
+set(gcf,'color','b');
 figure
-imagesc(y_mm, z_mm, imrotate(mid_cor, 90));
-title('\color{white}Coronal view')
-c = colorbar
-c.Color = [1 1 1];
+imagesc(z_mm, x_mm, imrotate(mid_cor, 90));
+title('Coronal view')
+colorbar
 colormap('gray')
 axis image
 set(gca,'xcolor',[1 1 1],'ycolor',[1 1 1]);
 set(gca,'ticklength',[0.05 0.05]);
-set(gcf,'color',[0 0 0]);
-
-pause
-close all
+set(gcf,'color','b');

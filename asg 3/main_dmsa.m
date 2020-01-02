@@ -13,7 +13,7 @@ Ymcoord=imag(man_seg);
 
 
 % Choose patient and look at image
-pat_nbr = 1;
+pat_nbr = 10;
 
 
 
@@ -370,11 +370,11 @@ end
 
 %% segmentation
 
-im = dmsa_images(:,:,end);
+im = dmsa_images(:,:,end-1);
 imagesc(im)
 colormap(gray)
 
-imt = im > 30;
+imt = im > 40;
 bw = bwlabel(imt);
 
 im1 = bw == 2;
@@ -406,6 +406,7 @@ trans_mean = trans_mean + tsdiff;
 
 trans_mean = trans_mean';
 
+%%
 bounds = bwboundaries(im1);
 
 points = fliplr(bounds{1});
@@ -430,18 +431,28 @@ for i = 1:size(trans_mean,1)
 end
 
 kid_points = best_points;
+figure
 imshow(im1)
 hold on;
 drawshape_comp(kid_points, [1 14 1],'.-b')
 drawshape_comp(trans_mean, [1 14 1],'.-r')
 
-%% alignment
+[Rs, ts, ss] = computeTransformations(best_points, meanshapexy);
+new_trans_mean = transformPoints(meanshapexy, Rs, ts, ss);
 
-bt = Pb'*(kid_points(:) - trans_mean(:));
+figure
+imshow(im1)
+hold on;
+drawshape_comp(kid_points, [1 14 1],'.-b')
+drawshape_comp(new_trans_mean, [1 14 1],'.-r')
+trans_mean = [real(new_trans_mean) imag(new_trans_mean)];
+%% alignment
+new_trans_meanxy = [real(new_trans_mean) imag(new_trans_mean)];
+bt = Pb'*(kid_points(:) - new_trans_meanxy(:));
 
 prot = Pb*bt;
 
-Pb_points = trans_mean + [prot(1:end/2) prot(1+end/2:end)];
+Pb_points = new_trans_meanxy + [prot(1:end/2) prot(1+end/2:end)];
 
 [R,t,s] = computeTransformations(kid_points, Pb_points);
 
