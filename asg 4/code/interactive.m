@@ -264,10 +264,23 @@ global GUI
 %stop/slow down. Have fun!
 
 %Calculate the intensity at the seed in case it is useful.
-intensityatseed = GUI.IM(GUI.YSeed,GUI.XSeed);
+im = double(imgaussfilt(GUI.IM, 0.5+GUI.Slider1/20));
+
+%edges = edge(im);
+intensityatseed = im(GUI.YSeed,GUI.XSeed);
+im = abs(im - intensityatseed);
+im = max(im, [], 'all') - im;
+minim = min(im, [], 'all');
+maxim = max(im, [], 'all');
+im = (im - minim)./(maxim-minim);
+im = im > GUI.Slider2/100;
+el = strel('disk', 2+round(GUI.Slider3*20));
+im = imclose(im, el);
+
+%edges = imopen(edges, strel('disk', 5));
 
 %Just anything for now, replace here!
-GUI.SPEED = (GUI.IM-GUI.IM-intensityatseed)*GUI.Slider1;
+GUI.SPEED = double(im);
 GUI.SPEED(GUI.SPEED<1e-2) = 1e-2;
 
 tic;

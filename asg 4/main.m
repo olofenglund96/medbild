@@ -1,18 +1,38 @@
 mr_heart_info = mydicominfo('images/MR-heart-single.dcm');
 %%
-ct_thorax_info = mydicominfo('images/CT-thorax-single.dcm');
+ct_thorax_info = mydicominfo('images   /CT-thorax-single.dcm');
 
 %%
 [mr_heart_info, mr_heart_im] = mydicomread('images/MR-heart-single.dcm');
 
 figure
 imagesc(mr_heart_im)
+title('CT of heart');
+colorbar
+axis image
+colormap gray
 
 %%
 [ct_thorax_info, ct_thorax_im] = mydicomread('images/CT-thorax-single.dcm');
 
 figure
 imagesc(ct_thorax_im)
+title('CT of thorax');
+colorbar
+axis image
+colormap gray
+
+
+%%
+[ct_thorax_info, ct_thorax_im] = mydicomread('images/CT-thorax-single.dcm');
+
+im = double(imgaussfilt(ct_thorax_im, 4));
+im = (im - min(im, [], 'all'))./(max(im, [], 'all')-min(im, [], 'all'));
+im = im > 0.6;
+el = strel('disk', 4);
+im = imopen(im, strel);
+figure
+imagesc(im)
 %%
 [test_inf, test_im] = mydicomread('C:\Users\olofe\Documents\MATLAB\MedBild\asg 4\images\MR-thorax-transversal\OUTIM0080.dcm');
 
@@ -52,14 +72,18 @@ im_3d_trans = im_3d;
 im_3d_sag = permute(im_3d, [1 3 2]);
 im_3d_cor = permute(im_3d, [2 3 1]);
 %%
-im = im_3d_cor;
+im = im_3d_trans;
 while 1
     for i = 1:size(im, 3)
         imagesc(imrotate(im(:,:,i), 90));
-        title(['Image ' num2str(i) ' of ' num2str(size(im, 3))])
+        title(['\color{white}Image ' num2str(i) ' of ' num2str(size(im, 3))])
         colorbar
         colormap('gray')
-        axis equal
+        axis image
+        set(gca,'xcolor',[1 1 1],'ycolor',[1 1 1]);
+        set(gca,'color',[1 1 1]);
+        set(gca,'ticklength',[0.05 0.05]);
+        set(gcf,'color',[0 0 0]);
         pause(0.1)
     end
 end
@@ -103,3 +127,5 @@ set(gcf,'color',[0 0 0]);
 
 pause
 close all
+
+%%
